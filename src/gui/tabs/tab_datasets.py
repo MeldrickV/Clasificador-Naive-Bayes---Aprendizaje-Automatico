@@ -1,8 +1,3 @@
-"""
-Pestaña 6 — Datasets Recomendados
-Versión estable Linux/Windows — sin PanedWindow, sin bind_all.
-"""
-
 import tkinter as tk
 from tkinter import ttk
 from gui.styles import COLORS, FONTS

@@ -1,9 +1,3 @@
-"""
-Pestaña 4 — Resultados
-=======================
-Muestra la matriz de confusión visual, métricas detalladas y exportación.
-"""
-
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 import numpy as np

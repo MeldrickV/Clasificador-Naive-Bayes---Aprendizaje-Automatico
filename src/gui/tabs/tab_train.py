@@ -1,10 +1,3 @@
-"""
-Pestaña 2 — Entrenamiento
-=========================
-Ejecuta el entrenamiento, muestra el progreso y las métricas
-de evaluación con tarjetas visuales.
-"""
-
 import tkinter as tk
 from tkinter import ttk, messagebox
 import threading
