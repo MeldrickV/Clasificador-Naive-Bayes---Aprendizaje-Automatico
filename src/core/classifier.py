@@ -1,8 +1,3 @@
-"""
-Clasificador Naïve Bayes
-Soporta variables continuas y discretas con múltiples métodos de estimación
-"""
-
 import numpy as np
 import pandas as pd
 from scipy import stats

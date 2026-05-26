@@ -1,108 +1,104 @@
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
+from tkinter import filedialog, messagebox
+import customtkinter as ctk
 import os
 
+# from gui.widgets.components import InfoBox, SectionHeader, MethodCard, Badge, Tooltip, ScrollableFrame
 from gui.styles import COLORS, FONTS
-from gui.widgets.components import (
-    InfoBox, SectionHeader, MethodCard, Badge, Tooltip, ScrollableFrame
-)
+from gui.widgets.components import InfoBox, SectionHeader, MethodCard, Badge, Tooltip, ScrollableFrame
 from gui.widgets.help_panel import HelpPanel
 
 
-class ConfigTab(tk.Frame):
+
+class ConfigTab(ctk.CTkFrame):
     def __init__(self, parent, app_state: dict, **kw):
-        super().__init__(parent, bg=COLORS["bg_main"], **kw)
+        super().__init__(parent, fg_color="transparent", **kw)
         self.app_state = app_state
         self._build()
 
     def _build(self):
-        # Panel izquierdo con scroll
-        left = ScrollableFrame(self, bg=COLORS["bg_main"])
+        # Panel izquierdo con scroll - usando CTkScrollableFrame
+        left = ctk.CTkScrollableFrame(self, fg_color="transparent")
         left.pack(side="left", fill="both", expand=True, padx=(8, 4), pady=8)
 
-        # Panel derecho de ayuda - más ancho (360 px)
-        right = tk.Frame(self, bg=COLORS["bg_card"], relief="solid", bd=1, width=380)
+        # Panel derecho de ayuda (ancho 360)
+        right = ctk.CTkFrame(self, fg_color=COLORS["bg_card"], border_width=1, border_color=COLORS["border"], width=360)
         right.pack(side="right", fill="both", expand=False, padx=(0, 8), pady=8)
         right.pack_propagate(False)
 
         self.help_panel = HelpPanel(right)
         self.help_panel.pack(fill="both", expand=True)
 
-        # Construir secciones dentro del frame con scroll
-        self._build_dataset(left.inner)
-        self._build_method(left.inner)
-        self._build_params(left.inner)
+        # Construir secciones dentro del scrollable frame
+        self._build_dataset(left)
+        self._build_method(left)
+        self._build_params(left)
 
-    # ── Dataset ───────────────────────────────────
+    # Dataset
     def _build_dataset(self, parent):
         card = self._card(parent)
         SectionHeader(card, "Dataset de Entrenamiento",
                       "Archivo CSV con atributos y columna de clase",
-                      icon="📂", bg=COLORS["bg_card"]).pack(
+                      icon="", fg_color="#ffffff").pack(
                           fill="x", padx=12, pady=(12, 8))
 
-        row = tk.Frame(card, bg=COLORS["bg_card"])
+        row = ctk.CTkFrame(card, fg_color="transparent")
         row.pack(fill="x", padx=12, pady=(0, 4))
 
-        ttk.Button(row, text="📂  Cargar Dataset (.csv)",
-                   style="Primary.TButton",
-                   command=self._load_dataset).pack(side="left")
+        ctk.CTkButton(row, text="Cargar Dataset (.csv)",
+                      command=self._load_dataset).pack(side="left")
 
         self._ds_badge = Badge(row, "Sin cargar", style="gray")
         self._ds_badge.pack(side="left", padx=10)
 
-        self._ds_info = tk.Label(card, text="",
-                                 bg=COLORS["bg_card"],
-                                 fg=COLORS["text_secondary"],
-                                 font=FONTS["small"])
+        self._ds_info = ctk.CTkLabel(card, text="", font=("Segoe UI", 10))
         self._ds_info.pack(anchor="w", padx=12)
 
-        self._col_preview = tk.Label(card, text="",
-                                     bg=COLORS["bg_card"],
-                                     fg=COLORS["text_secondary"],
-                                     font=FONTS["small"],
-                                     wraplength=480, justify="left")
+        self._col_preview = ctk.CTkLabel(card, text="",
+                                         font=("Segoe UI", 10),
+                                         wraplength=480, justify="left")
         self._col_preview.pack(anchor="w", padx=12, pady=(0, 4))
 
-        ttk.Separator(card).pack(fill="x", padx=12, pady=6)
+        # Separador
+        ctk.CTkFrame(card, height=1, fg_color="#e2e8f0").pack(fill="x", padx=12, pady=6)
 
-        obj_row = tk.Frame(card, bg=COLORS["bg_card"])
+        obj_row = ctk.CTkFrame(card, fg_color="transparent")
         obj_row.pack(fill="x", padx=12, pady=(0, 12))
 
-        tk.Label(obj_row, text="🎯  Columna objetivo (clase):",
-                 bg=COLORS["bg_card"], fg=COLORS["text"],
-                 font=FONTS["body_bold"]).pack(side="left")
+        ctk.CTkLabel(obj_row, text="Columna objetivo (clase):",
+                     font=("Segoe UI", 10, "bold")).pack(side="left")
 
-        self.target_combo = ttk.Combobox(obj_row, state="readonly", width=26,
-                                          textvariable=self.app_state["target_col"])
+        self.target_combo = ctk.CTkComboBox(obj_row, state="readonly", width=260,
+                                            variable=self.app_state["target_col"],
+                                            values=[])
         self.target_combo.pack(side="left", padx=(10, 0))
         Tooltip(self.target_combo,
                 "Columna que contiene las etiquetas de clase (lo que el modelo predice).")
 
-    # ── Método ────────────────────────────────────
+    # Método
     def _build_method(self, parent):
         card = self._card(parent)
 
         SectionHeader(card, "Método para Variables Continuas",
                       "Cómo estimar la probabilidad de valores numéricos",
-                      icon="📈", bg=COLORS["bg_card"]).pack(
+                      icon="", fg_color="#ffffff").pack(
                           fill="x", padx=12, pady=(12, 8))
 
-        grid = tk.Frame(card, bg=COLORS["bg_card"])
+        grid = ctk.CTkFrame(card, fg_color="transparent")
         grid.pack(fill="x", padx=12, pady=(0, 6))
-        grid.columnconfigure((0, 1), weight=1)
+        grid.grid_columnconfigure((0, 1), weight=1)
 
         var = self.app_state["cont_method"]
 
         cards_data = [
             ("gaussian",    "Gaussiana",     "Distribución normal (μ, σ)",
-             COLORS["gaussian"], COLORS["gaussian_light"], "📊"),
+             "#4f46e5", "#ede9fe", ""),
             ("kde",         "KDE",           "Estimación no paramétrica",
-             COLORS["kde"],      COLORS["kde_light"],      "〰"),
+             "#0891b2", "#cffafe", ""),
             ("equal_width", "Anchos =",      "Intervalos de igual tamaño",
-             COLORS["ew"],       COLORS["ew_light"],       "📏"),
+             "#059669", "#d1fae5", ""),
             ("equal_freq",  "Frecuencias =", "Igual cantidad por intervalo",
-             COLORS["ef"],       COLORS["ef_light"],       "⚖"),
+             "#d97706", "#fef3c7", "⚖"),
         ]
 
         for idx, (val, title, desc, col, bg, icon) in enumerate(cards_data):
@@ -116,17 +112,17 @@ class ConfigTab(tk.Frame):
                 "Selecciona una tarjeta → el panel derecho muestra su explicación completa",
                 type_="tip").pack(fill="x", padx=12, pady=(0, 12))
 
-    # ── Parámetros ────────────────────────────────
+    # Parámetros
     def _build_params(self, parent):
         card = self._card(parent)
         SectionHeader(card, "Parámetros de Configuración",
                       "Hiperparámetros del modelo",
-                      icon="⚙", bg=COLORS["bg_card"]).pack(
+                      icon="⚙", fg_color="#ffffff").pack(
                           fill="x", padx=12, pady=(12, 8))
 
-        body = tk.Frame(card, bg=COLORS["bg_card"])
+        body = ctk.CTkFrame(card, fg_color="transparent")
         body.pack(fill="x", padx=12, pady=(0, 12))
-        body.columnconfigure(1, weight=1)
+        body.grid_columnconfigure(1, weight=1)
 
         # Laplace alpha
         self._param_row(body, 0, "Laplace Alpha (α):",
@@ -139,123 +135,114 @@ class ConfigTab(tk.Frame):
                         "Intervalos para discretizar variables continuas.")
 
         # KDE bandwidth
-        tk.Label(body, text="Bandwidth KDE:", bg=COLORS["bg_card"],
-                 fg=COLORS["text"], font=FONTS["body"]).grid(
-                     row=2, column=0, sticky="w", pady=5)
+        ctk.CTkLabel(body, text="Bandwidth KDE:", font=("Segoe UI", 10)).grid(
+            row=2, column=0, sticky="w", pady=5)
 
-        kde_f = tk.Frame(body, bg=COLORS["bg_card"])
+        kde_f = ctk.CTkFrame(body, fg_color="transparent")
         kde_f.grid(row=2, column=1, sticky="w", padx=(10, 0), pady=5)
 
-        ttk.Combobox(kde_f, textvariable=self.app_state["kde_bw"],
-                     values=["scott", "silverman"],
-                     state="readonly", width=12).pack(side="left")
+        ctk.CTkComboBox(kde_f, variable=self.app_state["kde_bw"],
+                        values=["scott", "silverman"],
+                        state="readonly", width=120).pack(side="left")
 
-        bw_help = tk.Label(kde_f, text="  ❓",
-                           bg=COLORS["bg_card"], fg=COLORS["kde"],
-                           cursor="hand2", font=FONTS["body"])
+        bw_help = ctk.CTkLabel(kde_f, text="  ", text_color="#0891b2",
+                               cursor="hand2", font=("Segoe UI", 10))
         bw_help.pack(side="left")
         bw_help.bind("<Button-1>",
                      lambda e: self.help_panel.show_param("kde_bw"))
 
-        # Split
-        ttk.Separator(body).grid(row=3, column=0, columnspan=2,
-                                 sticky="ew", pady=8)
+        # Separador
+        ctk.CTkFrame(body, height=1, fg_color="#e2e8f0").grid(row=3, column=0, columnspan=2,
+                                                               sticky="ew", pady=8)
 
-        tk.Label(body, text="División Entrenamiento / Prueba:",
-                 bg=COLORS["bg_card"], fg=COLORS["text"],
-                 font=FONTS["body"]).grid(row=4, column=0, sticky="w", pady=5)
+        ctk.CTkLabel(body, text="División Entrenamiento / Prueba:",
+                     font=("Segoe UI", 10)).grid(row=4, column=0, sticky="w", pady=5)
 
-        split_f = tk.Frame(body, bg=COLORS["bg_card"])
+        split_f = ctk.CTkFrame(body, fg_color="transparent")
         split_f.grid(row=4, column=1, sticky="ew", padx=(10, 0), pady=5)
 
-        self._split_lbl = tk.Label(split_f,
-                                   text="70% entrenamiento / 30% prueba",
-                                   bg=COLORS["bg_card"], fg=COLORS["primary"],
-                                   font=FONTS["body_bold"])
+        self._split_lbl = ctk.CTkLabel(split_f,
+                                       text="70% entrenamiento / 30% prueba",
+                                       text_color="#2563eb",
+                                       font=("Segoe UI", 10, "bold"))
         self._split_lbl.pack(anchor="w")
 
-        ttk.Scale(split_f, from_=10, to=90,
-                  variable=self.app_state["train_pct"],
-                  orient="horizontal", length=180,
-                  command=self._upd_split).pack(anchor="w", pady=(2, 0))
+        self._slider = ctk.CTkSlider(split_f, from_=10, to=90,
+                                     variable=self.app_state["train_pct"],
+                                     command=self._upd_split, width=180)
+        self._slider.pack(anchor="w", pady=(2, 0))
 
-        help_lbl = tk.Label(split_f, text="❓ ¿Qué es esto?",
-                            bg=COLORS["bg_card"], fg=COLORS["primary"],
-                            cursor="hand2", font=FONTS["small"])
+        help_lbl = ctk.CTkLabel(split_f, text="¿Qué es esto?",
+                                text_color="#2563eb", cursor="hand2",
+                                font=("Segoe UI", 9))
         help_lbl.pack(anchor="w")
         help_lbl.bind("<Button-1>",
                       lambda e: self.help_panel.show_param("split"))
 
-        # Semilla
-        ttk.Separator(body).grid(row=5, column=0, columnspan=2,
-                                 sticky="ew", pady=6)
+        # Separador
+        ctk.CTkFrame(body, height=1, fg_color="#e2e8f0").grid(row=5, column=0, columnspan=2,
+                                                               sticky="ew", pady=6)
 
-        tk.Label(body, text="Semilla aleatoria:",
-                 bg=COLORS["bg_card"], fg=COLORS["text"],
-                 font=FONTS["body"]).grid(row=6, column=0, sticky="w", pady=5)
+        ctk.CTkLabel(body, text="Semilla aleatoria:",
+                     font=("Segoe UI", 10)).grid(row=6, column=0, sticky="w", pady=5)
 
-        seed_f = tk.Frame(body, bg=COLORS["bg_card"])
+        seed_f = ctk.CTkFrame(body, fg_color="transparent")
         seed_f.grid(row=6, column=1, sticky="w", padx=(10, 0), pady=5)
 
-        ttk.Entry(seed_f, textvariable=self.app_state["seed"],
-                  width=10).pack(side="left")
-        tk.Label(seed_f, text="  (para reproducir resultados)",
-                 bg=COLORS["bg_card"], fg=COLORS["text_light"],
-                 font=FONTS["small"]).pack(side="left")
+        ctk.CTkEntry(seed_f, textvariable=self.app_state["seed"],
+                     width=100).pack(side="left")
+        ctk.CTkLabel(seed_f, text="  (para reproducir resultados)",
+                     font=("Segoe UI", 9), text_color="#94a3b8").pack(side="left")
 
-        # ── Botones de acción ────────
-        ttk.Separator(card).pack(fill="x", padx=12, pady=8)
+        # Botones de acción
+        ctk.CTkFrame(card, height=1, fg_color="#e2e8f0").pack(fill="x", padx=12, pady=8)
         
-        btn_frame = tk.Frame(card, bg=COLORS["bg_card"])
+        btn_frame = ctk.CTkFrame(card, fg_color="transparent")
         btn_frame.pack(fill="x", padx=12, pady=(0, 12))
         
-        analyze_btn = ttk.Button(
+        analyze_btn = ctk.CTkButton(
             btn_frame,
-            text="▶  ANÁLISIS",
-            style="Primary.TButton",
-            command=self._on_analyze_click
+            text="ANÁLISIS",
+            command=self._on_analyze_click,
+            fg_color="#2563eb", hover_color="#1d4ed8"
         )
         analyze_btn.pack(side="left", fill="x", expand=True, padx=(0, 8))
         
-        ttk.Button(
+        ctk.CTkButton(
             btn_frame,
-            text="🔄  LIMPIAR",
-            style="Secondary.TButton",
-            command=self._on_clear_click
+            text="LIMPIAR",
+            command=self._on_clear_click,
+            fg_color="#e2e8f0", text_color="#2563eb", hover_color="#dbeafe"
         ).pack(side="left", fill="x", expand=True)
 
-    # ── Helpers ───────────────────────────────────
-    def _card(self, parent) -> tk.Frame:
-        f = tk.Frame(parent, bg=COLORS["bg_card"], relief="solid", bd=1)
+    # Helpers
+    def _card(self, parent) -> ctk.CTkFrame:
+        f = ctk.CTkFrame(parent, fg_color=COLORS["bg_card"], border_width=1, border_color=COLORS["border"])
         f.pack(fill="x", pady=4)
         return f
 
     def _param_row(self, parent, row, label, var, help_key, tip):
-        tk.Label(parent, text=label, bg=COLORS["bg_card"],
-                 fg=COLORS["text"], font=FONTS["body"]).grid(
-                     row=row, column=0, sticky="w", pady=3)
-        inner = tk.Frame(parent, bg=COLORS["bg_card"])
+        ctk.CTkLabel(parent, text=label, font=("Segoe UI", 10)).grid(
+            row=row, column=0, sticky="w", pady=3)
+        inner = ctk.CTkFrame(parent, fg_color="transparent")
         inner.grid(row=row, column=1, sticky="w", padx=(10, 0), pady=5)
 
-        ttk.Entry(inner, textvariable=var, width=10).pack(side="left")
+        ctk.CTkEntry(inner, textvariable=var, width=100).pack(side="left")
 
-        hl = tk.Label(inner, text="  ❓", bg=COLORS["bg_card"],
-                      fg=COLORS["primary"], cursor="hand2",
-                      font=FONTS["body"])
+        hl = ctk.CTkLabel(inner, text=" ", text_color="#2563eb",
+                          cursor="hand2", font=("Segoe UI", 10))
         hl.pack(side="left")
         hl.bind("<Button-1>",
                 lambda e, k=help_key: self.help_panel.show_param(k))
 
-        tk.Label(inner, text=tip, bg=COLORS["bg_card"],
-                 fg=COLORS["text_light"],
-                 font=FONTS["small"]).pack(side="left", padx=(6, 0))
+        ctk.CTkLabel(inner, text=tip, font=("Segoe UI", 9),
+                     text_color="#94a3b8").pack(side="left", padx=(6, 0))
 
-    def _upd_split(self, val=None):
-        pct = int(float(self.app_state["train_pct"].get()))
-        self._split_lbl.config(
-            text=f"{pct}% entrenamiento  /  {100 - pct}% prueba")
+    def _upd_split(self, val):
+        pct = int(float(val))
+        self._split_lbl.configure(text=f"{pct}% entrenamiento  /  {100 - pct}% prueba")
 
-    # ── Carga dataset ─────────────────────────────
+    # Carga dataset
     def _load_dataset(self):
         import pandas as pd
         path = filedialog.askopenfilename(
@@ -271,21 +258,20 @@ class ConfigTab(tk.Frame):
             fname = os.path.basename(path)
             n_rows, n_cols = df.shape
 
-            self._ds_badge.config(text=f"✓ {fname}",
-                                  bg=COLORS["success_light"],
-                                  fg=COLORS["success"])
-            self._ds_info.config(
-                text=f"{n_rows} instancias  ·  {n_cols} columnas")
+            self._ds_badge.configure(text=f"✓ {fname}",
+                                     fg_color=COLORS["success_light"],
+                                     text_color=COLORS["success"])
+            self._ds_info.configure(text=f"{n_rows} instancias  ·  {n_cols} columnas")
 
             cols = list(df.columns)
             preview = "Columnas: " + ", ".join(
                 f"{c}({str(df[c].dtype)[:3]})" for c in cols[:8])
             if len(cols) > 8:
                 preview += f" (+{len(cols)-8} más)"
-            self._col_preview.config(text=preview)
+            self._col_preview.configure(text=preview)
 
-            self.target_combo["values"] = cols
-            self.target_combo.current(len(cols) - 1)
+            self.target_combo.configure(values=cols)
+            self.target_combo.set(cols[-1])
             self.app_state["target_col"].set(cols[-1])
 
             messagebox.showinfo("Dataset cargado",
@@ -294,17 +280,17 @@ class ConfigTab(tk.Frame):
         except Exception as exc:
             messagebox.showerror("Error al cargar dataset", str(exc))
 
-    # ── VALIDACIÓN Y ANÁLISIS ────
+    # VALIDACIÓN Y ANÁLISIS
     def _validate_all(self):
         if self.app_state.get('dataset') is None:
             messagebox.showerror("Error de validación", 
-                "❌ Dataset no cargado.\n\nPor favor, carga un archivo CSV primero.")
+                "Dataset no cargado.\n\nPor favor, carga un archivo CSV primero.")
             return False
         
         target = self.app_state['target_col'].get()
         if not target:
             messagebox.showerror("Error de validación",
-                "❌ Columna objetivo no seleccionada.\n\nSelecciona la columna que contiene las etiquetas de clase.")
+                "Columna objetivo no seleccionada.\n\nSelecciona la columna que contiene las etiquetas de clase.")
             return False
         
         try:
@@ -326,11 +312,11 @@ class ConfigTab(tk.Frame):
                 
         except ValueError as e:
             messagebox.showerror("Error de validación", 
-                f"❌ Parámetros inválidos:\n\n{str(e)}")
+                f"Parámetros inválidos:\n\n{str(e)}")
             return False
         except Exception as e:
             messagebox.showerror("Error de validación",
-                f"❌ Error inesperado:\n\n{str(e)}")
+                f"Error inesperado:\n\n{str(e)}")
             return False
         
         return True
@@ -338,22 +324,29 @@ class ConfigTab(tk.Frame):
     def _on_analyze_click(self):
         if not self._validate_all():
             return
-        messagebox.showinfo("Validación OK", 
+        messagebox.showinfo("Validación OK",
             "✓ Todos los parámetros son válidos.\n\n"
             "Iniciando análisis en la pestaña Entrenamiento...")
-        notebook = self.master
-        notebook.select(1)
+        # Cambiar a la pestaña "Entrenamiento" en el CTkTabview
+        tabview = self.master
+        if hasattr(tabview, "set"):
+            tabview.set("Entrenamiento")
+        else:
+            # Fallback: buscar en la ventana principal
+            root = self.winfo_toplevel()
+            if hasattr(root, "_tabview"):
+                root._tabview.set("Entrenamiento")
 
     def _on_clear_click(self):
-        if messagebox.askyesno("Limpiar", 
+        if messagebox.askyesno("Limpiar",
             "¿Estás seguro de que deseas limpiar el dataset y resetear los parámetros?"):
             self.app_state['dataset'] = None
             self.app_state['dataset_path'] = None
-            self._ds_badge.config(text="Sin cargar", 
-                                 bg=COLORS["gray_light"], 
-                                 fg=COLORS["gray"])
-            self._ds_info.config(text="")
-            self._col_preview.config(text="")
-            self.target_combo["values"] = []
+            self._ds_badge.configure(text="Sin cargar",
+                                     fg_color="#e2e8f0",
+                                     text_color=COLORS["text_secondary"])
+            self._ds_info.configure(text="")
+            self._col_preview.configure(text="")
+            self.target_combo.configure(values=[])
             self.target_combo.set("")
             messagebox.showinfo("Limpiar", "✓ Dataset y parámetros reseteados.")

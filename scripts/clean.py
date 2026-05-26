@@ -1,7 +1,3 @@
-"""
-Script para limpiar archivos temporales generados durante compilación
-"""
-
 import os
 import shutil
 import sys

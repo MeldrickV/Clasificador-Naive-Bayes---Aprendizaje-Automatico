@@ -1,8 +1,3 @@
-"""
-Módulo de evaluación para el clasificador Naïve Bayes
-Incluye métricas: matriz de confusión, precisión, recall, F1, accuracy
-"""
-
 import numpy as np
 import pandas as pd
 from typing import Dict, Tuple

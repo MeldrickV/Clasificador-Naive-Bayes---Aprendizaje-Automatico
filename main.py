@@ -1,9 +1,3 @@
-"""
-Clasificador Naïve Bayes - Aprendizaje Automático
-==================================================
-Punto de entrada principal de la aplicación.
-"""
-
 import sys
 import os
 

@@ -1,11 +1,11 @@
-import tkinter as tk
-from tkinter import ttk
+import customtkinter as ctk
 from gui.styles import COLORS, FONTS
 from gui.widgets.components import InfoBox
 
+
 DATASETS = [
     {
-        "name": "Iris Flower Dataset", "icon": "🌸",
+        "name": "Iris Flower Dataset", "icon": "",
         "difficulty": "Principiante", "diff_style": "success",
         "classes": 3, "features": 4, "samples": 150,
         "feature_types": "Solo continuas",
@@ -29,7 +29,7 @@ DATASETS = [
         ],
     },
     {
-        "name": "Titanic Survival", "icon": "🚢",
+        "name": "Titanic Survival", "icon": "",
         "difficulty": "Principiante", "diff_style": "success",
         "classes": 2, "features": "6-8", "samples": 891,
         "feature_types": "Mixtas (continuas + discretas)",
@@ -52,7 +52,7 @@ DATASETS = [
         ],
     },
     {
-        "name": "SMS Spam Collection", "icon": "📱",
+        "name": "SMS Spam Collection", "icon": "",
         "difficulty": "Intermedio", "diff_style": "warning",
         "classes": 2, "features": "Variable", "samples": 5574,
         "feature_types": "Discretas (frecuencias de palabras)",
@@ -76,7 +76,7 @@ DATASETS = [
         ],
     },
     {
-        "name": "Wine Quality", "icon": "🍷",
+        "name": "Wine Quality", "icon": "",
         "difficulty": "Intermedio", "diff_style": "warning",
         "classes": "3-6", "features": 11, "samples": 6497,
         "feature_types": "Solo continuas (distribuciones no normales)",
@@ -125,7 +125,7 @@ DATASETS = [
         ],
     },
     {
-        "name": "Mushroom Classification", "icon": "🍄",
+        "name": "Mushroom Classification", "icon": "",
         "difficulty": "Principiante", "diff_style": "success",
         "classes": 2, "features": 22, "samples": 8124,
         "feature_types": "Solo discretas (22 variables categóricas)",
@@ -149,7 +149,7 @@ DATASETS = [
         ],
     },
     {
-        "name": "Breast Cancer Wisconsin", "icon": "🔬",
+        "name": "Breast Cancer Wisconsin", "icon": "",
         "difficulty": "Principiante", "diff_style": "success",
         "classes": 2, "features": 30, "samples": 569,
         "feature_types": "Solo continuas",
@@ -173,7 +173,7 @@ DATASETS = [
         ],
     },
     {
-        "name": "Car Evaluation", "icon": "🚗",
+        "name": "Car Evaluation", "icon": "",
         "difficulty": "Principiante", "diff_style": "success",
         "classes": 4, "features": 6, "samples": 1728,
         "feature_types": "Solo discretas (ordinales)",
@@ -200,230 +200,153 @@ DATASETS = [
 ]
 
 
-class DatasetsTab(tk.Frame):
+class DatasetsTab(ctk.CTkFrame):
     def __init__(self, parent, **kw):
-        super().__init__(parent, bg=COLORS["bg_main"], **kw)
+        super().__init__(parent, fg_color=COLORS["bg_main"], **kw)
         self._build()
 
     def _build(self):
         # Header
-        hdr = tk.Frame(self, bg=COLORS["bg_dark"])
-        hdr.pack(fill="x")
-        tk.Label(hdr, text="🗃  Datasets Recomendados para Naïve Bayes",
-                 bg=COLORS["bg_dark"], fg=COLORS["text_white"],
-                 font=FONTS["title"], padx=18, pady=12,
-                 anchor="w").pack(fill="x")
-        tk.Label(
-    hdr,
-    text="Selecciona un dataset para ver descripción, "
-         "por qué es ideal y qué aprenderás.",
-    bg=COLORS["bg_dark"],
-    fg=COLORS["text_header"],
-    font=FONTS["small"],
-    padx=20,
-    anchor="w"
-).pack(fill="x", pady=(0, 10))
+        hdr = ctk.CTkFrame(self, fg_color=COLORS["bg_dark"], height=90)
+        hdr.pack(fill="x", pady=(0,8))
+        hdr.pack_propagate(False)
+        ctk.CTkLabel(hdr, text="  Datasets Recomendados para Naïve Bayes",
+                     font=ctk.CTkFont(size=16, weight="bold"),
+                     text_color="white").pack(anchor="w", padx=18, pady=(12,4))
+        ctk.CTkLabel(hdr, text="Selecciona un dataset para ver descripción, por qué es ideal y qué aprenderás.",
+                     font=ctk.CTkFont(size=11), text_color="#e2e8f0").pack(anchor="w", padx=20, pady=(0,10))
 
-        # Filtros de dificultad
-        fbar = tk.Frame(self, bg=COLORS["bg_main"])
+        # Filtros
+        fbar = ctk.CTkFrame(self, fg_color="transparent")
         fbar.pack(fill="x", padx=10, pady=6)
-        tk.Label(fbar, text="Filtrar por dificultad:",
-                 bg=COLORS["bg_main"], fg=COLORS["text_secondary"],
-                 font=FONTS["small_bold"]).pack(side="left")
-        self._filter = tk.StringVar(value="Todos")
+        ctk.CTkLabel(fbar, text="Filtrar por dificultad:",
+                     font=ctk.CTkFont(size=11, weight="bold")).pack(side="left")
+        self._filter = ctk.StringVar(value="Todos")
         for level in ["Todos", "Principiante", "Intermedio"]:
-            ttk.Radiobutton(fbar, text=level,
-                            variable=self._filter, value=level,
-                            command=self._apply_filter).pack(side="left", padx=8)
+            rb = ctk.CTkRadioButton(fbar, text=level, variable=self._filter,
+                                    value=level, command=self._apply_filter)
+            rb.pack(side="left", padx=8)
 
-        # Split: lista (izq) + detalle (der) — sin PanedWindow
-        body = tk.Frame(self, bg=COLORS["bg_main"])
-        body.pack(fill="both", expand=True, padx=8, pady=(0, 8))
+        # Cuerpo principal: dos paneles con CTkScrollableFrame
+        body = ctk.CTkFrame(self, fg_color="transparent")
+        body.pack(fill="both", expand=True, padx=8, pady=(0,8))
 
-        # Lista izquierda con scroll
-        list_outer = tk.Frame(body, bg=COLORS["bg_main"], width=300)
-        list_outer.pack(side="left", fill="y")
-        list_outer.pack_propagate(False)
+        # Panel izquierdo (lista)
+        self.left_panel = ctk.CTkScrollableFrame(body, width=280, label_text="Datasets")
+        self.left_panel.pack(side="left", fill="both", expand=False)
 
-        self._list_canvas = tk.Canvas(list_outer, bg=COLORS["bg_main"],
-                                      highlightthickness=0, borderwidth=0,
-                                      width=296)
-        lvsb = ttk.Scrollbar(list_outer, orient="vertical",
-                              command=self._list_canvas.yview)
-        self._list_inner = tk.Frame(self._list_canvas, bg=COLORS["bg_main"])
-        self._list_inner.bind("<Configure>",
-                              lambda e: self._list_canvas.configure(
-                                  scrollregion=self._list_canvas.bbox("all")))
-        self._list_canvas.create_window((0, 0), window=self._list_inner,
-                                        anchor="nw")
-        self._list_canvas.configure(yscrollcommand=lvsb.set)
-        lvsb.pack(side="right", fill="y")
-        self._list_canvas.pack(side="left", fill="both", expand=True)
-        self._list_canvas.bind("<Button-4>",
-                               lambda e: self._list_canvas.yview_scroll(-1, "units"))
-        self._list_canvas.bind("<Button-5>",
-                               lambda e: self._list_canvas.yview_scroll(1, "units"))
+        # Separador
+        sep = ctk.CTkFrame(body, width=1, fg_color="#e2e8f0")
+        sep.pack(side="left", fill="y", padx=4)
 
-        # Separador vertical
-        tk.Frame(body, bg=COLORS["border"], width=1).pack(side="left", fill="y")
-
-        # Detalle derecho con scroll
-        detail_outer = tk.Frame(body, bg=COLORS["bg_card"])
-        detail_outer.pack(side="right", fill="both", expand=True)
-
-        self._det_canvas = tk.Canvas(detail_outer, bg=COLORS["bg_card"],
-                                     highlightthickness=0, borderwidth=0)
-        dvsb = ttk.Scrollbar(detail_outer, orient="vertical",
-                              command=self._det_canvas.yview)
-        self._det_inner = tk.Frame(self._det_canvas, bg=COLORS["bg_card"])
-        self._det_inner.bind("<Configure>",
-                             lambda e: self._det_canvas.configure(
-                                 scrollregion=self._det_canvas.bbox("all")))
-        self._det_win = self._det_canvas.create_window(
-            (0, 0), window=self._det_inner, anchor="nw")
-        self._det_canvas.configure(yscrollcommand=dvsb.set)
-        dvsb.pack(side="right", fill="y")
-        self._det_canvas.pack(side="left", fill="both", expand=True)
-        self._det_canvas.bind("<Configure>",
-                              lambda e: self._det_canvas.itemconfig(
-                                  self._det_win, width=e.width))
-        self._det_canvas.bind("<Button-4>",
-                              lambda e: self._det_canvas.yview_scroll(-1, "units"))
-        self._det_canvas.bind("<Button-5>",
-                              lambda e: self._det_canvas.yview_scroll(1, "units"))
+        # Panel derecho (detalle)
+        self.right_panel = ctk.CTkScrollableFrame(body, label_text="Detalle del Dataset")
+        self.right_panel.pack(side="right", fill="both", expand=True)
 
         self._render_list(DATASETS)
         self._show_detail(DATASETS[0])
 
     def _apply_filter(self):
         f = self._filter.get()
-        filtered = DATASETS if f == "Todos" else [
-            d for d in DATASETS if d["difficulty"] == f]
+        filtered = DATASETS if f == "Todos" else [d for d in DATASETS if d["difficulty"] == f]
         self._render_list(filtered)
         if filtered:
             self._show_detail(filtered[0])
 
     def _render_list(self, datasets):
-        for w in self._list_inner.winfo_children():
+        for w in self.left_panel.winfo_children():
             w.destroy()
-
-        diff_colors = {
-            "success": (COLORS["success_light"], COLORS["success"]),
-            "warning": (COLORS["warning_light"], COLORS["warning"]),
-        }
 
         for ds in datasets:
-            card = tk.Frame(self._list_inner, bg=COLORS["bg_card"],
-                            relief="solid", bd=1, cursor="hand2")
+            card = ctk.CTkFrame(self.left_panel, fg_color=ds["bg"], corner_radius=8,
+                                border_width=1, border_color=ds["color"])
             card.pack(fill="x", padx=4, pady=3)
+            card.bind("<Button-1>", lambda e, d=ds: self._show_detail(d))
 
-            top = tk.Frame(card, bg=ds["bg"])
-            top.pack(fill="x")
-            tk.Label(top, text=f"{ds['icon']}  {ds['name']}",
-                     bg=ds["bg"], fg=ds["color"],
-                     font=FONTS["body_bold"],
-                     padx=8, pady=6, anchor="w").pack(side="left", fill="x",
-                                                       expand=True)
-            dbg, dfg = diff_colors.get(ds["diff_style"],
-                                        (COLORS["border"],
-                                         COLORS["text_secondary"]))
-            tk.Label(top, text=ds["difficulty"],
-                     bg=dbg, fg=dfg, font=FONTS["small_bold"],
-                     padx=6, pady=2).pack(side="right", padx=6, pady=6)
+            top = ctk.CTkFrame(card, fg_color="transparent")
+            top.pack(fill="x", padx=8, pady=(6,2))
+            ctk.CTkLabel(top, text=ds["icon"], font=ctk.CTkFont(size=14)).pack(side="left", padx=(0,6))
+            ctk.CTkLabel(top, text=ds["name"], font=ctk.CTkFont(size=12, weight="bold"),
+                         text_color=ds["color"]).pack(side="left", fill="x", expand=True)
+            diff_bg = "#d1fae5" if ds["diff_style"] == "success" else "#fef3c7"
+            diff_fg = "#059669" if ds["diff_style"] == "success" else "#d97706"
+            ctk.CTkLabel(top, text=ds["difficulty"], fg_color=diff_bg, text_color=diff_fg,
+                         corner_radius=12, padx=6, pady=2,
+                         font=ctk.CTkFont(size=10, weight="bold")).pack(side="right")
 
-            info = tk.Frame(card, bg=COLORS["bg_card"])
-            info.pack(fill="x", padx=8, pady=(3, 6))
-            tk.Label(info,
-                     text=f"{ds['samples']} instancias · "
-                          f"{ds['features']} atrib. · {ds['classes']} clases",
-                     bg=COLORS["bg_card"], fg=COLORS["text_secondary"],
-                     font=FONTS["small"]).pack(anchor="w")
+            info = ctk.CTkFrame(card, fg_color="transparent")
+            info.pack(fill="x", padx=8, pady=(0,6))
+            ctk.CTkLabel(info, text=f"{ds['samples']} instancias · {ds['features']} atrib. · {ds['classes']} clases",
+                         font=ctk.CTkFont(size=10), text_color=COLORS["text_secondary"]).pack(anchor="w")
 
-            click_handler = lambda e, d=ds: self._show_detail(d)
-            for w in [card, top, info] + \
-                     list(top.winfo_children()) + \
-                     list(info.winfo_children()):
-                try:
-                    w.bind("<Button-1>", click_handler)
-                except Exception:
-                    pass
+
+            for child in [top, info] + top.winfo_children() + info.winfo_children():
+                child.bind("<Button-1>", lambda e, d=ds: self._show_detail(d))
 
     def _show_detail(self, ds):
-        for w in self._det_inner.winfo_children():
+        for w in self.right_panel.winfo_children():
             w.destroy()
-        self._det_canvas.yview_moveto(0)
 
-        f = self._det_inner
+        # Header
+        hdr = ctk.CTkFrame(self.right_panel, fg_color=ds["color"], corner_radius=8)
+        hdr.pack(fill="x", pady=(0,8))
+        ctk.CTkLabel(hdr, text=f"{ds['icon']}  {ds['name']}",
+                     font=ctk.CTkFont(size=18, weight="bold"),
+                     text_color="white").pack(anchor="w", padx=16, pady=12)
 
-        # Header coloreado
-        hdr = tk.Frame(f, bg=ds["color"])
-        hdr.pack(fill="x")
-        tk.Label(hdr, text=f"{ds['icon']}  {ds['name']}",
-                 bg=ds["color"], fg="#ffffff", font=FONTS["title"],
-                 padx=18, pady=12, anchor="w").pack(fill="x")
+        # Metadatos
+        meta = ctk.CTkFrame(self.right_panel, fg_color=ds["bg"], corner_radius=8)
+        meta.pack(fill="x", pady=4)
+        labels = [("Instancias", str(ds["samples"])), ("Atributos", str(ds["features"])),
+                  ("Clases", str(ds["classes"])), ("Dificultad", ds["difficulty"]),
+                  ("Mejor método", ds["best_method"])]
+        for i, (lbl, val) in enumerate(labels):
+            cell = ctk.CTkFrame(meta, fg_color="transparent")
+            cell.grid(row=0, column=i, padx=6, pady=8, sticky="nsew")
+            ctk.CTkLabel(cell, text=lbl, font=ctk.CTkFont(size=10, weight="bold"),
+                         text_color=ds["color"]).pack()
+            ctk.CTkLabel(cell, text=val, font=ctk.CTkFont(size=12, weight="bold"),
+                         text_color="#1e293b").pack()
+        for i in range(len(labels)):
+            meta.grid_columnconfigure(i, weight=1)
 
-        # Barra de meta-datos
-        meta = tk.Frame(f, bg=ds["bg"])
-        meta.pack(fill="x")
-        for lbl, val in [("Instancias", str(ds["samples"])),
-                         ("Atributos", str(ds["features"])),
-                         ("Clases", str(ds["classes"])),
-                         ("Dificultad", ds["difficulty"]),
-                         ("Mejor método", ds["best_method"])]:
-            cell = tk.Frame(meta, bg=ds["bg"])
-            cell.pack(side="left", padx=10, pady=8)
-            tk.Label(cell, text=lbl, bg=ds["bg"], fg=ds["color"],
-                     font=FONTS["small_bold"]).pack()
-            tk.Label(cell, text=val, bg=ds["bg"], fg=COLORS["text"],
-                     font=FONTS["body_bold"]).pack()
-
-        P = 14
-
-        # Descripción
-        self._det_section(f, "📋 Descripción", ds["description"], P)
-        self._det_section(f, "✅ ¿Por qué es ideal para Naïve Bayes?",
-                          ds["why_good"], P)
+        # Descripciones
+        self._det_section(self.right_panel, " Descripción", ds["description"])
+        self._det_section(self.right_panel, " ¿Por qué es ideal para Naïve Bayes?", ds["why_good"])
 
         # Qué aprenderás
-        learn_f = tk.Frame(f, bg=COLORS["bg_card"], relief="solid", bd=1)
-        learn_f.pack(fill="x", padx=P, pady=4)
-        tk.Label(learn_f, text="🎓  ¿Qué aprenderás?",
-                 bg=COLORS["primary_light"], fg=COLORS["primary"],
-                 font=FONTS["body_bold"],
-                 padx=12, pady=6, anchor="w").pack(fill="x")
+        learn_frame = ctk.CTkFrame(self.right_panel, fg_color=COLORS["bg_card"], border_width=1, border_color=COLORS["border"], corner_radius=8)
+        learn_frame.pack(fill="x", pady=4)
+        ctk.CTkLabel(learn_frame, text="  ¿Qué aprenderás?",
+                     font=ctk.CTkFont(size=12, weight="bold"), text_color=COLORS["primary"],
+                     fg_color=COLORS["primary_light"], corner_radius=8).pack(fill="x", ipady=4)
         for item in ds["what_to_learn"]:
-            row = tk.Frame(learn_f, bg=COLORS["bg_card"])
+            row = ctk.CTkFrame(learn_frame, fg_color="transparent")
             row.pack(fill="x", padx=10, pady=2)
-            tk.Label(row, text="▸", bg=COLORS["bg_card"],
-                     fg=COLORS["primary"],
-                     font=FONTS["body_bold"]).pack(side="left", padx=(0, 6))
-            tk.Label(row, text=item, bg=COLORS["bg_card"],
-                     fg=COLORS["text"], font=FONTS["small"],
-                     wraplength=500, anchor="w",
-                     justify="left").pack(side="left")
-        tk.Frame(learn_f, bg=COLORS["bg_card"], height=6).pack()
+            ctk.CTkLabel(row, text="▸", font=ctk.CTkFont(size=12), text_color=COLORS["primary"]).pack(side="left", padx=(0,6))
+            ctk.CTkLabel(row, text=item, font=ctk.CTkFont(size=11), text_color="#1e293b",
+                         anchor="w", justify="left").pack(side="left", fill="x", expand=True)
+        ctk.CTkFrame(learn_frame, height=6, fg_color="transparent").pack()
 
         # Tipos de variables
-        InfoBox(f, f"Variables: {ds['feature_types']}",
-                type_="info").pack(fill="x", padx=P, pady=4)
+        InfoBox(self.right_panel, f"Variables: {ds['feature_types']}", type_="info").pack(fill="x", pady=4)
 
         # Fuente
-        src_f = tk.Frame(f, bg=COLORS["bg_card"])
-        src_f.pack(fill="x", padx=P, pady=(4, 16))
-        tk.Label(src_f, text="🔗  Dónde encontrarlo:",
-                 bg=COLORS["bg_card"], fg=COLORS["text_secondary"],
-                 font=FONTS["small_bold"]).pack(anchor="w")
-        tk.Label(src_f, text=ds["url"],
-                 bg=COLORS["bg_card"], fg=COLORS["primary"],
-                 font=FONTS["small"]).pack(anchor="w")
+        src_frame = ctk.CTkFrame(self.right_panel, fg_color=COLORS["bg_card"], border_width=1, border_color=COLORS["border"], corner_radius=8)
+        src_frame.pack(fill="x", pady=4)
+        ctk.CTkLabel(src_frame, text="  Dónde encontrarlo:",
+                     font=ctk.CTkFont(size=11, weight="bold"), text_color=COLORS["text_secondary"]).pack(anchor="w", padx=12, pady=(6,2))
+        ctk.CTkLabel(src_frame, text=ds["url"], font=ctk.CTkFont(size=10), text_color=COLORS["primary"]).pack(anchor="w", padx=12, pady=(0,6))
 
-    def _det_section(self, parent, title, text, P):
-        f = tk.Frame(parent, bg=COLORS["bg_card"], relief="solid", bd=1)
-        f.pack(fill="x", padx=P, pady=4)
-        tk.Label(f, text=title, bg=COLORS["primary_light"],
-                 fg=COLORS["primary"], font=FONTS["body_bold"],
-                 padx=12, pady=6, anchor="w").pack(fill="x")
-        tk.Label(f, text=text, bg=COLORS["bg_card"],
-                 fg=COLORS["text"], font=FONTS["small"],
-                 wraplength=520, justify="left",
-                 padx=12, pady=8, anchor="nw").pack(fill="x")
+        self.right_panel._parent_canvas.yview_moveto(0)
+
+    def _det_section(self, parent, title, text):
+        frame = ctk.CTkFrame(parent, fg_color=COLORS["bg_card"], border_width=1, border_color=COLORS["border"], corner_radius=8)
+        frame.pack(fill="x", pady=4)
+        ctk.CTkLabel(frame, text=title, font=ctk.CTkFont(size=12, weight="bold"),
+                     text_color=COLORS["primary"], fg_color=COLORS["primary_light"],
+                     corner_radius=8).pack(fill="x", ipady=4)
+        textbox = ctk.CTkTextbox(frame, height=100, wrap="word", font=ctk.CTkFont(size=11))
+        textbox.pack(fill="x", padx=8, pady=8)
+        textbox.insert("0.0", text)
+        textbox.configure(state="disabled")
