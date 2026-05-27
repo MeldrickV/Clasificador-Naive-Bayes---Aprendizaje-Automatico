@@ -5,7 +5,7 @@ from tkinter import messagebox
 import customtkinter as ctk
 
 from gui.styles import COLORS, FONTS
-from gui.widgets.components import SectionHeader, MetricCard, Badge
+from gui.widgets.components import SectionHeader, MetricCard, Badge, InfoBox
 
 
 class TrainTab(ctk.CTkFrame):
@@ -17,7 +17,7 @@ class TrainTab(ctk.CTkFrame):
         self._build()
 
     def _build(self):
-        # Encabezado de acción
+        # Barra de acciones
         action_bar = ctk.CTkFrame(self, fg_color=COLORS["bg_card"],
                                   border_width=1, border_color=COLORS["border"])
         action_bar.pack(fill="x", padx=10, pady=(10, 0))
@@ -38,7 +38,7 @@ class TrainTab(ctk.CTkFrame):
         self._progress.pack(side="left")
         self._progress.set(0)
 
-        # Tarjetas de métricas
+        # Panel de métricas (tarjetas)
         metrics_frame = ctk.CTkFrame(self, fg_color=COLORS["bg_main"])
         metrics_frame.pack(fill="x", padx=10, pady=8)
 
@@ -46,39 +46,52 @@ class TrainTab(ctk.CTkFrame):
                                  color=COLORS["primary"])
         self._m_acc.pack(side="left", padx=4, pady=4, fill="x", expand=True)
 
-        self._m_prec = MetricCard(metrics_frame, "Precisión", icon="",
+        self._m_prec = MetricCard(metrics_frame, "Precisión Macro", icon="",
                                   color=COLORS["gaussian"])
         self._m_prec.pack(side="left", padx=4, pady=4, fill="x", expand=True)
 
-        self._m_rec = MetricCard(metrics_frame, "Recall", icon="",
+        self._m_rec = MetricCard(metrics_frame, "Recall Macro", icon="",
                                  color=COLORS["kde"])
         self._m_rec.pack(side="left", padx=4, pady=4, fill="x", expand=True)
 
-        self._m_f1 = MetricCard(metrics_frame, "F1-Score", icon="⚖",
+        self._m_f1 = MetricCard(metrics_frame, "F1-Score Macro", icon="⚖",
                                 color=COLORS["ew"])
         self._m_f1.pack(side="left", padx=4, pady=4, fill="x", expand=True)
 
-        # Log de entrenamiento
+        # InfoBox explicativo (acerca de la reproducibilidad)
+        InfoBox(self,
+                text="El accuracy depende de la división aleatoria (semilla) y los parámetros.\n"
+                     "Con la misma semilla y mismos parámetros, cada entrenamiento dará el MISMO resultado.",
+                type_="info",
+                title="Reproducibilidad").pack(fill="x", padx=10, pady=(0, 8))
+
+        # Panel de log con scroll mejorado
         log_card = ctk.CTkFrame(self, fg_color=COLORS["bg_card"],
                                 border_width=1, border_color=COLORS["border"])
         log_card.pack(fill="both", expand=True, padx=10, pady=(0, 10))
 
-        SectionHeader(log_card, "Log de Entrenamiento",
+        header_frame = ctk.CTkFrame(log_card, fg_color=COLORS["bg_card"])
+        header_frame.pack(fill="x", padx=14, pady=(12, 6))
+        SectionHeader(header_frame, "Log de Entrenamiento",
                       "Salida detallada del proceso",
                       icon="",
-                      fg_color=COLORS["bg_card"]).pack(fill="x", padx=14, pady=(12, 6))
+                      fg_color=COLORS["bg_card"]).pack(side="left", fill="x", expand=True)
 
+        self._clear_log_btn = ctk.CTkButton(header_frame, text="Limpiar Log",
+                                            command=self._clear_log,
+                                            fg_color=COLORS["primary"],
+                                            width=100)
+        self._clear_log_btn.pack(side="right")
 
-        # Texto del log
+        # Área de texto con scroll
         log_outer = ctk.CTkFrame(log_card, fg_color=COLORS["bg_code"])
         log_outer.pack(fill="both", expand=True, padx=14, pady=(0, 14))
-        
-        # Elegir color según modo actual
+
         bg_code = COLORS["bg_code"]
         if isinstance(bg_code, (list, tuple)):
             modo = ctk.get_appearance_mode()
             bg_code = bg_code[1] if modo == "Dark" else bg_code[0]
-            
+
         self.log_text = tk.Text(
             log_outer,
             bg=bg_code,
@@ -92,20 +105,18 @@ class TrainTab(ctk.CTkFrame):
             cursor="arrow",
             state="disabled"
         )
-        
+
         scrollbar = ctk.CTkScrollbar(
             log_outer,
             orientation="vertical",
             command=self.log_text.yview
         )
-        
         self.log_text.configure(yscrollcommand=scrollbar.set)
-        
+
         scrollbar.pack(side="right", fill="y")
         self.log_text.pack(fill="both", expand=True)
-            
-        
-        # Colores de texto en el log
+
+        # Configurar tags para colores
         self.log_text.tag_configure("ok", foreground="#56d4a0")
         self.log_text.tag_configure("info", foreground="#7ec8e3")
         self.log_text.tag_configure("warn", foreground="#f7c35f")
@@ -113,7 +124,27 @@ class TrainTab(ctk.CTkFrame):
         self.log_text.tag_configure("header", foreground="#ffffff",
                                     font=FONTS["mono_bold"])
         self.log_text.tag_configure("dim", foreground="#4a5568")
+        self.log_text.tag_configure("success", foreground="#34d399")
+        self.log_text.tag_configure("metric", foreground="#fbbf24")
 
+        # Habilitar scroll con rueda del mouse en el Text widget
+        self._enable_text_mousewheel(self.log_text)
+
+    def _enable_text_mousewheel(self, text_widget):
+        """Permite desplazar el Text widget con la rueda del mouse."""
+        def on_mousewheel(event):
+            if event.num == 4:   # Linux arriba
+                text_widget.yview_scroll(-1, "units")
+            elif event.num == 5: # Linux abajo
+                text_widget.yview_scroll(1, "units")
+            else:                # Windows / macOS
+                delta = -1 * (event.delta // abs(event.delta)) if event.delta != 0 else 0
+                text_widget.yview_scroll(delta, "units")
+            return "break"
+
+        text_widget.bind("<MouseWheel>", on_mousewheel, add=True)
+        text_widget.bind("<Button-4>", on_mousewheel, add=True)
+        text_widget.bind("<Button-5>", on_mousewheel, add=True)
 
     def _start_training(self):
         if self.app_state.get("dataset") is None:
@@ -129,6 +160,7 @@ class TrainTab(ctk.CTkFrame):
         self._clear_log()
         self._set_status("Entrenando…", "warning")
         self._progress.start()
+        self._train_btn.configure(state="disabled", text="   Entrenando...")
 
         thread = threading.Thread(target=self._run_training, daemon=True)
         thread.start()
@@ -181,7 +213,8 @@ class TrainTab(ctk.CTkFrame):
             self._log(f"  Clase objetivo: {tgt}", "info")
             self._log(f"  Método: {method_names.get(meth, meth)}", "info")
             self._log(f"  Laplace α: {alpha}  |  Bins: {nbins}  |  KDE bw: {bw}", "info")
-            self._log(f"✂   Split: {int(pct*100)}% / {int((1-pct)*100)}%  |  Semilla: {seed}\n", "info")
+            self._log(f"✂   Split: {int(pct*100)}% / {int((1-pct)*100)}%  |  Semilla: {seed}", "info")
+            self._log(f"  Reproducible: Sí (misma semilla → mismos resultados)\n", "dim")
 
             self._log("─" * 40, "dim")
             self._log(f"  Entrenamiento: {len(X_train)} instancias", "ok")
@@ -200,7 +233,7 @@ class TrainTab(ctk.CTkFrame):
             clf.fit(X_train, y_train)
 
             for feat, ftype in clf.feature_types_.items():
-                icon = "" if ftype == "continuous" else ""
+                icon = "🔹" if ftype == "discrete" else "📈"
                 self._log(f"    {icon}  {feat}: {ftype}", "dim")
 
             self.app_state["classifier"] = clf
@@ -212,13 +245,14 @@ class TrainTab(ctk.CTkFrame):
             self.app_state["y_pred"] = y_pred
             self.app_state["classes"] = clf.classes_
 
-            self._log("\n─" * 40, "dim")
-            self._log("  MÉTRICAS DE EVALUACIÓN", "header")
-            self._log("─" * 40, "dim")
-            self._log(f"  Accuracy:   {metrics['accuracy']:.4f}  ({metrics['accuracy']*100:.2f}%)", "ok")
-            self._log(f"  Precisión:  {metrics['precision_macro']:.4f}  (macro)", "ok")
-            self._log(f"  Recall:     {metrics['recall_macro']:.4f}  (macro)", "ok")
-            self._log(f"  F1-Score:   {metrics['f1_macro']:.4f}  (macro)\n", "ok")
+            # Mostrar resumen de métricas en el log
+            self._log("\n" + "═" * 56, "dim")
+            self._log("  📊 RESUMEN DE MÉTRICAS", "header")
+            self._log("═" * 56, "dim")
+            self._log(f"\n  Accuracy:   {metrics['accuracy']:.4f}  ({metrics['accuracy']*100:.2f}%)", "success")
+            self._log(f"  Precisión Macro:  {metrics['precision_macro']:.4f}", "ok")
+            self._log(f"  Recall Macro:     {metrics['recall_macro']:.4f}", "ok")
+            self._log(f"  F1-Score Macro:   {metrics['f1_macro']:.4f}\n", "ok")
 
             self._log("─" * 40, "dim")
             self._log("  POR CLASE:", "info")
@@ -228,22 +262,24 @@ class TrainTab(ctk.CTkFrame):
                 p = metrics['precision'][cls]
                 r = metrics['recall'][cls]
                 f = metrics['f1_score'][cls]
-                self._log(fmt.format(str(cls)[:20], f"{p:.3f}", f"{r:.3f}", f"{f:.3f}"), "ok")
+                self._log(fmt.format(str(cls)[:20], f"{p:.3f}", f"{r:.3f}", f"{f:.3f}"), "metric")
 
-            self._log("\n  Entrenamiento completado correctamente.", "ok")
+            self._log("\n  ✅ Entrenamiento completado correctamente.", "success")
             self._log("═" * 56 + "\n", "dim")
 
+            # Actualizar tarjetas de métricas en la GUI
             self.after(0, self._update_metric_cards, metrics)
             self.after(0, self._set_status, "✓ Modelo entrenado", "success")
             self.after(0, self._progress.stop)
 
         except Exception as exc:
             import traceback
-            self._log(f"\n  ERROR: {exc}", "error")
+            self._log(f"\n  ❌ ERROR: {exc}", "error")
             self._log(traceback.format_exc(), "error")
             self.after(0, self._set_status, "Error", "error")
             self.after(0, self._progress.stop)
-
+        finally:
+            self.after(0, lambda: self._train_btn.configure(state="normal", text="    Entrenar Modelo"))
 
     def _log(self, msg: str, tag: str = ""):
         def _do():

@@ -95,10 +95,10 @@ class ConfigTab(ctk.CTkFrame):
              "#4f46e5", "#ede9fe", ""),
             ("kde",         "KDE",           "Estimación no paramétrica",
              "#0891b2", "#cffafe", ""),
-            ("equal_width", "Anchos =",      "Intervalos de igual tamaño",
+            ("equal_width", "Anchos igules",      "Intervalos de igual tamaño",
              "#059669", "#d1fae5", ""),
-            ("equal_freq",  "Frecuencias =", "Igual cantidad por intervalo",
-             "#d97706", "#fef3c7", "⚖"),
+            ("equal_freq",  "Frecuencias iguales", "Igual cantidad por intervalo",
+             "#d97706", "#fef3c7", ""),
         ]
 
         for idx, (val, title, desc, col, bg, icon) in enumerate(cards_data):

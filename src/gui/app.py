@@ -13,7 +13,7 @@ from gui.styles import COLORS
 
 
 ctk.set_appearance_mode("system")
-ctk.set_default_color_theme("dark-blue")
+ctk.set_default_color_theme("blue")
 
 
 def launch_app():
@@ -54,7 +54,7 @@ class NaiveBayesApp(ctk.CTkFrame):
 	    "n_bins": tk.StringVar(value="5"),
 	    "kde_bw": tk.StringVar(value="scott"),
 	    "train_pct": tk.DoubleVar(value=70.0),
-	    "seed": tk.StringVar(value="42"),
+	    "seed": tk.StringVar(value="0"),
 	}
 
         self._build()
@@ -115,7 +115,7 @@ class NaiveBayesApp(ctk.CTkFrame):
             anchor="w", font=("Segoe UI", 10), text_color=COLORS["text_secondary"])
         self._status.pack(side="left", fill="x", expand=True, padx=6)
 
-        ctk.CTkLabel(sb, text="v2.0  Naïve Bayes Classifier  ",
+        ctk.CTkLabel(sb, text="v4.3  Naïve Bayes Classifier  ",
                     font=("Segoe UI", 10), text_color="#94a3b8").pack(side="right")
 
         self.state["target_col"].trace_add("write", self._update_status)

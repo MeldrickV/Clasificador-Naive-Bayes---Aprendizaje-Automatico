@@ -218,35 +218,7 @@ GUIDE_SECTIONS = [
             ]),
         ],
     },
-    {
-        "id": "tips", "title": "Tips y Buenas Prácticas", "icon": "",
-        "content": [
-            ("list_title", "Selección del método:"),
-            ("list", [
-                "Empieza con Gaussiana — es rápido y buen baseline",
-                "Si el accuracy es bajo, prueba KDE (más flexible)",
-                "Con muchos outliers → usa Discretización",
-                "Compara los 4 métodos para encontrar el mejor para tus datos",
-            ]),
-            ("list_title", "Escala de accuracy:"),
-            ("list", [
-                "Accuracy > 90% → Excelente",
-                "Accuracy 75-90% → Bueno",
-                "Accuracy 60-75% → Aceptable",
-                "Accuracy < 60% → Revisa los datos o cambia el método",
-            ]),
-            ("list_title", "Mejora de resultados:"),
-            ("list", [
-                "Más datos → siempre mejora el modelo",
-                "Limpia el dataset: elimina duplicados y outliers extremos",
-                "Clases desbalanceadas → usa F1 en lugar de Accuracy",
-                "Prueba diferentes valores de n_bins (3, 5, 10) con discretización",
-            ]),
-            ("tip",
-             "Un modelo 100% en entrenamiento pero malo en prueba "
-             "indica sobreajuste. Con Naïve Bayes esto es poco común."),
-        ],
-    },
+    
 ]
 
 
